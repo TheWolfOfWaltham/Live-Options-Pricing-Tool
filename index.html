@@ -3,333 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline';">
 <title>0DTE Options Pricer</title>
 <style>
 :root {
-  --bg:        #0f0f0f;
-  --bg2:       #1a1a1a;
-  --bg3:       #222222;
-  --border:    #2e2e2e;
-  --border2:   #3a3a3a;
-  --text:      #e8e8e8;
-  --text2:     #999;
-  --text3:     #666;
-  --blue:      #378ADD;
-  --blue-dim:  #1a3f6a;
-  --green:     #1D9E75;
-  --green-dim: #0d4a36;
-  --red:       #E24B4A;
-  --red-dim:   #4a1a1a;
-  --amber:     #EF9F27;
-  --amber-dim: #4a3010;
-  --radius:    6px;
-  --radius-lg: 10px;
+  --bg:#0f0f0f; --bg2:#1a1a1a; --bg3:#222; --border:#2e2e2e; --border2:#3a3a3a;
+  --text:#e8e8e8; --text2:#999; --text3:#555;
+  --blue:#378ADD; --blue-dim:#1a3f6a; --green:#1D9E75; --green-dim:#0d4a36;
+  --red:#E24B4A; --red-dim:#4a1a1a; --amber:#EF9F27; --amber-dim:#4a3010;
+  --radius:6px; --radius-lg:10px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  font-size: 13px;
-  height: 100%;
-  overflow: hidden;
-  -webkit-app-region: no-drag; /* allow Electron drag on titlebar only */
-}
-
-/* ── TITLEBAR ── */
-.titlebar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 38px;
-  background: var(--bg2);
-  border-bottom: 0.5px solid var(--border);
-  padding: 0 14px;
-  -webkit-app-region: drag;
-  flex-shrink: 0;
-}
-.titlebar-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text2);
-  letter-spacing: .04em;
-}
-.titlebar-actions {
-  display: flex;
-  gap: 6px;
-  -webkit-app-region: no-drag;
-}
-.tb-btn {
-  padding: 3px 10px;
-  font-size: 11px;
-  border-radius: var(--radius);
-  border: 0.5px solid var(--border2);
-  background: var(--bg3);
-  color: var(--text2);
-  cursor: pointer;
-  transition: all .15s;
-}
-.tb-btn:hover { background: var(--border); color: var(--text); }
-.tb-btn.active { background: var(--amber-dim); color: var(--amber); border-color: var(--amber); }
-
-/* ── LAYOUT ── */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 38px);
-}
-
-/* ── TABS ── */
-.tabs {
-  display: flex;
-  background: var(--bg2);
-  border-bottom: 0.5px solid var(--border);
-  flex-shrink: 0;
-}
-.tab {
-  padding: 10px 18px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  color: var(--text2);
-  transition: all .15s;
-  white-space: nowrap;
-}
-.tab.active { color: var(--text); border-bottom-color: var(--blue); }
-.tab:hover:not(.active) { color: var(--text); background: var(--bg3); }
-
-/* ── PANELS ── */
-.panels { flex: 1; overflow-y: auto; }
-.panel { display: none; padding: 16px; flex-direction: column; gap: 14px; }
-.panel.active { display: flex; }
-
-/* ── FORM ELEMENTS ── */
-.row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field label {
-  font-size: 10px; font-weight: 500; color: var(--text2);
-  text-transform: uppercase; letter-spacing: .06em;
-}
-.field input, .field select {
-  height: 32px; padding: 0 10px;
-  border: 0.5px solid var(--border2);
-  border-radius: var(--radius);
-  background: var(--bg3);
-  color: var(--text);
-  font-size: 13px;
-  width: 100%;
-  appearance: none;
-}
-.field input:focus, .field select:focus {
-  outline: none; border-color: var(--blue);
-}
-.field select { cursor: pointer; }
-
-/* ── TOGGLE ── */
-.toggle-group {
-  display: flex;
-  border: 0.5px solid var(--border2);
-  border-radius: var(--radius);
-  overflow: hidden;
-  height: 32px;
-}
-.toggle-btn {
-  flex: 1; padding: 0 14px;
-  font-size: 12px; font-weight: 500;
-  cursor: pointer; background: transparent;
-  border: none; color: var(--text2);
-  transition: all .15s;
-}
-.toggle-btn.active.call  { background: var(--blue-dim);  color: var(--blue); }
-.toggle-btn.active.put   { background: var(--red-dim);   color: var(--red); }
-.toggle-btn.active.plain { background: var(--bg3); color: var(--text); }
-
-/* ── BUTTONS ── */
-.btn-live {
-  height: 32px; padding: 0 16px;
-  border-radius: var(--radius);
-  border: 0.5px solid var(--border2);
-  background: var(--bg3); color: var(--text2);
-  font-size: 12px; font-weight: 500;
-  cursor: pointer; display: flex; align-items: center; gap: 6px;
-  white-space: nowrap; transition: all .15s;
-}
-.btn-live:hover { border-color: var(--green); color: var(--green); }
-.btn-live.on { background: var(--green-dim); color: var(--green); border-color: var(--green); }
-
-.btn-calc {
-  height: 32px; padding: 0 22px;
-  border-radius: var(--radius);
-  border: 0.5px solid var(--blue);
-  background: var(--blue); color: #fff;
-  font-size: 12px; font-weight: 600;
-  cursor: pointer; white-space: nowrap;
-  transition: opacity .15s;
-}
-.btn-calc:hover { opacity: .85; }
-
-.live-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--red);
-}
-.btn-live.on .live-dot {
-  background: var(--green);
-  animation: pulse 1s infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-.model-btn {
-  padding: 4px 10px; font-size: 11px;
-  border: 0.5px solid var(--border2);
-  border-radius: var(--radius);
-  background: transparent; color: var(--text2);
-  cursor: pointer; transition: all .15s;
-}
-.model-btn:hover { color: var(--text); }
-.model-btn.active { background: var(--blue-dim); color: var(--blue); border-color: var(--blue); }
-
-/* ── SECTION LABEL ── */
-.sec {
-  font-size: 10px; font-weight: 500;
-  color: var(--text3); text-transform: uppercase; letter-spacing: .06em;
-  padding-bottom: 6px;
-  border-bottom: 0.5px solid var(--border);
-}
-
-/* ── METRICS ── */
-.metric-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
-.metric {
-  background: var(--bg2);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 9px 12px;
-}
-.metric-label { font-size: 10px; color: var(--text3); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .04em; }
-.metric-val   { font-size: 18px; font-weight: 500; }
-.c-green  { color: #29c58a; }
-.c-red    { color: #e05a5a; }
-.c-blue   { color: #5faee8; }
-.c-amber  { color: var(--amber); }
-.c-dim    { color: var(--text2); }
-
-/* ── CHART BOX ── */
-.chart-box {
-  background: var(--bg2);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-}
-.chart-title {
-  font-size: 11px; font-weight: 500; color: var(--text2);
-  margin-bottom: 10px;
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 8px;
-}
-
-/* ── BADGES ── */
-.badge {
-  display: inline-flex; align-items: center;
-  padding: 2px 8px; border-radius: var(--radius);
-  font-size: 10px; font-weight: 600;
-}
-.badge-call { background: var(--blue-dim);  color: var(--blue); }
-.badge-put  { background: var(--red-dim);   color: var(--red); }
-.badge-opt  {
-  background: var(--amber-dim); color: var(--amber);
-  border: 0.5px solid var(--amber);
-}
-
-/* ── HEATMAP ── */
-.hm-wrap {
-  overflow-x: auto;
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius);
-}
-table.hm { border-collapse: collapse; width: 100%; font-size: 11px; }
-table.hm th {
-  padding: 6px 8px; font-weight: 500; color: var(--text2);
-  background: var(--bg3); text-align: center;
-  border: 0.5px solid var(--border); white-space: nowrap;
-}
-table.hm td {
-  padding: 5px 8px; text-align: center;
-  border: 0.5px solid var(--border);
-  font-size: 11px; font-weight: 500;
-  min-width: 66px; white-space: nowrap;
-}
-
-/* ── LIMIT SELL PANEL ── */
-.limit-panel {
-  background: var(--bg2);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px; display: flex; flex-direction: column; gap: 6px;
-}
-.limit-panel-title { font-size: 11px; font-weight: 500; color: var(--text2); }
-.limit-grid {
-  display: grid; grid-template-columns: 1.4fr 1fr 1fr;
-  border: 0.5px solid var(--border); border-radius: var(--radius);
-  overflow: hidden;
-}
-.limit-head {
-  background: var(--bg3); padding: 6px 10px;
-  font-size: 10px; font-weight: 500; color: var(--text3);
-  text-transform: uppercase; letter-spacing: .04em;
-  border-bottom: 0.5px solid var(--border);
-}
-.limit-cell {
-  background: var(--bg2); padding: 9px 10px;
-  border-top: 0.5px solid var(--border);
-}
-.limit-cell:not(:nth-child(3n)) { border-right: 0.5px solid var(--border); }
-.limit-scenario { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
-.limit-val-green { font-size: 15px; font-weight: 500; color: #29c58a; }
-.limit-val-blue  { font-size: 15px; font-weight: 500; color: #5faee8; }
-.limit-sub       { font-size: 10px; color: var(--text3); margin-top: 2px; }
-
-/* ── UNRUN PLACEHOLDER ── */
-.unrun {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 140px; color: var(--text3); font-size: 12px;
-  border: 0.5px dashed var(--border2); border-radius: var(--radius-lg);
-  gap: 8px;
-}
-
-/* ── LEGEND ── */
-.leg-row { display: flex; gap: 14px; font-size: 10px; color: var(--text2); margin-top: 6px; flex-wrap: wrap; }
-.leg-sw  { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 3px; vertical-align: middle; }
-
-/* ── STATUS ── */
-.status { font-size: 11px; color: var(--text3); }
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text3); }
-
-/* ── COLOR HELPERS for input/select in dark mode ── */
-input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(.4); cursor: pointer; }
-input[type="number"] { -moz-appearance: textfield; }
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:13px;height:100%;overflow:hidden}
+.titlebar{display:flex;align-items:center;justify-content:space-between;height:38px;background:var(--bg2);border-bottom:.5px solid var(--border);padding:0 14px;flex-shrink:0}
+.titlebar-left{display:flex;align-items:center;gap:12px}
+.titlebar-title{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.04em}
+.live-indicator{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+.live-indicator.connected{color:var(--green)}
+.live-indicator .dot{width:6px;height:6px;border-radius:50%;background:var(--text3)}
+.live-indicator.connected .dot{background:var(--green);animation:pulse 1.5s infinite}
+.last-updated{font-size:10px;color:var(--text3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.app{display:flex;flex-direction:column;height:calc(100vh - 38px)}
+.tabs{display:flex;background:var(--bg2);border-bottom:.5px solid var(--border);flex-shrink:0}
+.tab{padding:10px 18px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:all .15s;white-space:nowrap}
+.tab.active{color:var(--text);border-bottom-color:var(--blue)}
+.tab:hover:not(.active){color:var(--text);background:var(--bg3)}
+.panels{flex:1;overflow-y:auto}
+.panel{display:none;padding:16px;flex-direction:column;gap:14px}
+.panel.active{display:flex}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select{height:32px;padding:0 10px;border:.5px solid var(--border2);border-radius:var(--radius);background:var(--bg3);color:var(--text);font-size:13px;width:100%;appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue)}
+.field input.live-val{border-color:var(--green);color:#29c58a}
+.toggle-group{display:flex;border:.5px solid var(--border2);border-radius:var(--radius);overflow:hidden;height:32px}
+.toggle-btn{flex:1;padding:0 14px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;border:none;color:var(--text2);transition:all .15s}
+.toggle-btn.active.call{background:var(--blue-dim);color:var(--blue)}
+.toggle-btn.active.put{background:var(--red-dim);color:var(--red)}
+.btn-live{height:32px;padding:0 14px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s}
+.btn-live:hover{border-color:var(--green);color:var(--green)}
+.btn-live.on{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+.btn-live .dot{width:6px;height:6px;border-radius:50%;background:var(--red)}
+.btn-live.on .dot{background:var(--green);animation:pulse 1s infinite}
+.btn-calc{height:32px;padding:0 22px;border-radius:var(--radius);border:.5px solid var(--blue);background:var(--blue);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.btn-calc:hover{opacity:.85}
+.model-btn{padding:4px 10px;font-size:11px;border:.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s}
+.model-btn.active{background:var(--blue-dim);color:var(--blue);border-color:var(--blue)}
+.sec{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding-bottom:6px;border-bottom:.5px solid var(--border)}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.metric{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius);padding:9px 12px}
+.metric-label{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.metric-val{font-size:18px;font-weight:500}
+.c-green{color:#29c58a}.c-red{color:#e05a5a}.c-blue{color:#5faee8}.c-amber{color:var(--amber)}.c-dim{color:var(--text2)}
+.chart-box{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+.chart-title{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius);font-size:10px;font-weight:600}
+.badge-call{background:var(--blue-dim);color:var(--blue)}
+.badge-put{background:var(--red-dim);color:var(--red)}
+.badge-opt{background:var(--amber-dim);color:var(--amber);border:.5px solid var(--amber)}
+.hm-wrap{overflow-x:auto;border:.5px solid var(--border);border-radius:var(--radius)}
+table.hm{border-collapse:collapse;width:100%;font-size:11px}
+table.hm th{padding:6px 8px;font-weight:500;color:var(--text2);background:var(--bg3);text-align:center;border:.5px solid var(--border);white-space:nowrap}
+table.hm td{padding:5px 8px;text-align:center;border:.5px solid var(--border);font-size:11px;font-weight:500;min-width:66px;white-space:nowrap}
+.limit-panel{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:6px}
+.limit-panel-title{font-size:11px;font-weight:500;color:var(--text2)}
+.limit-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:4px}
+.limit-head{background:var(--bg3);padding:6px 10px;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:.5px solid var(--border)}
+.limit-cell{background:var(--bg2);padding:9px 10px;border-top:.5px solid var(--border)}
+.limit-cell:not(:nth-child(3n)){border-right:.5px solid var(--border)}
+.limit-scenario{font-size:10px;color:var(--text3);margin-bottom:2px}
+.limit-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.unrun{display:flex;align-items:center;justify-content:center;min-height:140px;color:var(--text3);font-size:12px;border:.5px dashed var(--border2);border-radius:var(--radius-lg);gap:8px}
+.leg-row{display:flex;gap:14px;font-size:10px;color:var(--text2);margin-top:6px;flex-wrap:wrap}
+.leg-sw{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+.status{font-size:11px;color:var(--text3)}
+.fetch-banner{background:var(--amber-dim);border:.5px solid var(--amber);border-radius:var(--radius);padding:8px 12px;font-size:11px;color:var(--amber);display:none}
+.fetch-banner.show{display:flex;align-items:center;gap:8px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(.4);cursor:pointer}
+input[type="number"]{-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none}
 </style>
 </head>
 <body>
 
-<!-- TITLEBAR -->
 <div class="titlebar">
-  <span class="titlebar-title">0DTE OPTIONS PRICER</span>
-  <div class="titlebar-actions">
-    <button class="tb-btn" id="aot-btn" onclick="toggleAOT()">Always on Top</button>
+  <div class="titlebar-left">
+    <span class="titlebar-title">0DTE OPTIONS PRICER</span>
+    <div class="live-indicator" id="live-ind">
+      <span class="dot"></span>
+      <span id="live-ind-text">connecting...</span>
+    </div>
+    <span class="last-updated" id="last-updated"></span>
   </div>
 </div>
 
 <div class="app">
-  <!-- TABS -->
   <div class="tabs">
     <div class="tab active" onclick="sw(0)">① Move Setup</div>
     <div class="tab" onclick="sw(1)">② Strike Heatmap</div>
@@ -339,8 +111,12 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
   <div class="panels">
 
-    <!-- ══ TAB 0: SETUP ══ -->
+    <!-- TAB 0 -->
     <div class="panel active" id="p0">
+      <div class="fetch-banner" id="fetch-banner">
+        ⚠ Could not reach live market data. Using default values. Market may be closed or API unavailable.
+      </div>
+
       <div class="sec">Ticker & Model</div>
       <div class="row">
         <div class="field" style="width:90px">
@@ -357,7 +133,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
             <button class="toggle-btn put"         id="btn-put"  onclick="setType('put')">Put</button>
           </div>
         </div>
-        <div class="field" style="width:90px"><label>IV (σ) %</label><input type="number" id="iv" value="22" step="0.5" min="1" max="300"></div>
+        <div class="field" style="width:90px"><label>IV (σ) %</label><input type="number" id="iv" value="—" step="0.5" min="1" max="300"></div>
         <div class="field" style="width:90px"><label>Risk-Free %</label><input type="number" id="rfr" value="5.3" step="0.1"></div>
         <div class="field" style="width:80px"><label>Strike ±</label><input type="number" id="hmrange" value="5" min="1" max="15" step="1"></div>
         <div class="row" style="align-items:center;gap:6px;padding-bottom:1px">
@@ -369,21 +145,23 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
       <div class="sec">Current Market State</div>
       <div class="row">
-        <div class="field" style="width:120px"><label>Spot Price (S₀)</label><input type="number" id="spot" value="480" step="0.01"></div>
+        <div class="field" style="width:130px">
+          <label>Spot Price (S₀)</label>
+          <input type="number" id="spot" value="" step="0.01" placeholder="fetching...">
+        </div>
         <div class="field" style="width:110px"><label>Current Time</label><input type="time" id="curtime" value="10:00"></div>
         <button class="btn-live" id="livebtn" onclick="togLive()">
-          <span class="live-dot"></span><span id="livelbl">LIVE</span>
+          <span class="dot"></span><span id="livelbl">LIVE</span>
         </button>
       </div>
 
       <div class="sec">Expected Move</div>
       <div class="row">
-        <div class="field" style="width:130px"><label>Target Price (S₁)</label><input type="number" id="target" value="484" step="0.5"></div>
+        <div class="field" style="width:130px"><label>Target Price (S₁)</label><input type="number" id="target" value="" step="0.5" placeholder="set after spot loads"></div>
         <div class="field" style="width:110px"><label>Target Time</label><input type="time" id="targtime" value="14:00"></div>
         <button class="btn-calc" onclick="runCalc()">Calculate →</button>
       </div>
 
-      <!-- Results (hidden until calculated) -->
       <div id="setup-results" style="display:none;flex-direction:column;gap:14px">
         <div class="metric-grid">
           <div class="metric"><div class="metric-label">Optimal Strike</div><div class="metric-val c-amber" id="m-optsk">—</div></div>
@@ -391,7 +169,6 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
           <div class="metric"><div class="metric-label">Avg Return (window)</div><div class="metric-val" id="m-avgret">—</div></div>
           <div class="metric"><div class="metric-label">Move Window</div><div class="metric-val c-dim" id="m-win">—</div></div>
         </div>
-
         <div class="chart-box">
           <div class="chart-title">
             <span id="chart0-title">Option value — S₀ vs S₁ over move window</span>
@@ -400,22 +177,19 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
               <span class="badge badge-call" id="chart0-badge">CALL</span>
             </div>
           </div>
-          <div style="position:relative;width:100%;height:200px">
-            <canvas id="setupChart"></canvas>
-          </div>
+          <div style="position:relative;width:100%;height:200px"><canvas id="setupChart"></canvas></div>
           <div class="leg-row">
             <span><span class="leg-sw" style="background:#378ADD"></span>Value at S₀</span>
-            <span><span class="leg-sw" style="background:#1D9E75"></span>Value at S₁ (target)</span>
+            <span><span class="leg-sw" style="background:#1D9E75"></span>Value at S₁</span>
             <span><span class="leg-sw" style="background:#e05a5a;opacity:.5"></span>Intrinsic value</span>
           </div>
         </div>
         <div class="status" id="status0"></div>
       </div>
-
       <div id="setup-placeholder" class="unrun">Enter move parameters above and press Calculate →</div>
     </div>
 
-    <!-- ══ TAB 1: HEATMAP ══ -->
+    <!-- TAB 1 -->
     <div class="panel" id="p1">
       <div id="hm-unrun" class="unrun">Run Calculate on the Setup tab first</div>
       <div id="hm-content" style="display:none;flex-direction:column;gap:10px">
@@ -427,15 +201,14 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
           </div>
         </div>
         <div style="font-size:10px;color:var(--text3)">
-          <span style="color:var(--amber);font-weight:600">⬟ yellow border</span> = optimal strike (highest avg % return across all columns) &nbsp;|&nbsp;
-          Avg return column shows the ranking metric
+          <span style="color:var(--amber);font-weight:600">⬟ yellow border</span> = optimal strike (highest avg % return across all columns)
         </div>
         <div class="hm-wrap"><div id="hm-container"></div></div>
         <div class="leg-row">
           <span><span class="leg-sw" style="background:#0F6E56"></span>&gt;100%</span>
           <span><span class="leg-sw" style="background:#1D9E75"></span>50–100%</span>
           <span><span class="leg-sw" style="background:#639922"></span>20–50%</span>
-          <span><span class="leg-sw" style="background:#9FE1CB;opacity:.5"></span>5–20%</span>
+          <span><span class="leg-sw" style="background:#3a5a2a"></span>5–20%</span>
           <span><span class="leg-sw" style="background:#333"></span>Flat</span>
           <span><span class="leg-sw" style="background:#7a2a1a"></span>Loss</span>
           <span><span class="leg-sw" style="background:#A32D2D"></span>&lt;-50%</span>
@@ -443,33 +216,26 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
       </div>
     </div>
 
-    <!-- ══ TAB 2: DECAY + LIMIT SELLS ══ -->
+    <!-- TAB 2 -->
     <div class="panel" id="p2">
       <div id="dec-unrun" class="unrun">Run Calculate on the Setup tab first</div>
       <div id="dec-content" style="display:none;flex-direction:column;gap:14px">
         <div class="sec">Selected strike: <span id="sel-strike-label" style="color:var(--text);text-transform:none;letter-spacing:0">—</span></div>
-
         <div class="limit-panel">
-          <div class="limit-panel-title">
-            Limit sell targets — 95% of fair value at each scenario
-            <span style="color:var(--text3);font-weight:400"> (conservatism built into strike selection; equal thirds of move window)</span>
-          </div>
-          <div class="limit-grid" id="limit-grid-header">
+          <div class="limit-panel-title">Limit sell targets — 95% of fair value at each scenario <span style="color:var(--text3);font-weight:400">(equal thirds of move window)</span></div>
+          <div class="limit-grid">
             <div class="limit-head">Scenario</div>
             <div class="limit-head">Fair value at S₁</div>
             <div class="limit-head">Limit sell (95%)</div>
           </div>
           <div id="limit-rows" style="display:flex;flex-direction:column;gap:4px;margin-top:4px"></div>
         </div>
-
         <div class="chart-box">
           <div class="chart-title">
             <span id="chart2-title">Decay — optimal strike</span>
             <span class="badge badge-call" id="chart2-badge">CALL</span>
           </div>
-          <div style="position:relative;width:100%;height:230px">
-            <canvas id="decayChart2"></canvas>
-          </div>
+          <div style="position:relative;width:100%;height:230px"><canvas id="decayChart2"></canvas></div>
           <div class="leg-row">
             <span><span class="leg-sw" style="background:#378ADD"></span>At S₀</span>
             <span><span class="leg-sw" style="background:#1D9E75"></span>At S₁</span>
@@ -479,11 +245,11 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
       </div>
     </div>
 
-    <!-- ══ TAB 3: GREEKS ══ -->
+    <!-- TAB 3 -->
     <div class="panel" id="p3">
       <div id="grk-unrun" class="unrun">Run Calculate on the Setup tab first</div>
       <div id="grk-content" style="display:none;flex-direction:column;gap:14px">
-        <div class="sec">Greeks at entry — centered strike (K = round(S₀))</div>
+        <div class="sec">Greeks at entry — centered strike (round(S₀))</div>
         <div class="metric-grid">
           <div class="metric"><div class="metric-label">Fair Value</div><div class="metric-val c-green" id="g-price">—</div></div>
           <div class="metric"><div class="metric-label">Delta (Δ)</div><div class="metric-val c-blue"  id="g-delta">—</div></div>
@@ -496,7 +262,6 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
           <div class="metric"><div class="metric-label">Time to Close</div><div class="metric-val c-dim" id="g-tte">—</div></div>
           <div class="metric"><div class="metric-label">Moneyness</div><div class="metric-val c-dim" id="g-mono">—</div></div>
         </div>
-
         <div class="sec" style="margin-top:4px">Greeks at entry — <span style="color:var(--amber)">optimal strike ⬟</span></div>
         <div class="metric-grid">
           <div class="metric"><div class="metric-label">Fair Value</div><div class="metric-val c-green" id="og-price">—</div></div>
@@ -513,474 +278,424 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
       </div>
     </div>
 
-  </div><!-- /panels -->
-</div><!-- /app -->
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ═══════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════
-let optType = 'call';
-let mdl     = 'bs';
-let hmMode  = 'ror';
-let liveOn  = false;
-let liveIv  = null;
-let hasRun  = false;
-let optimalStrike = null;
-let setupChartInst = null;
-let decay2Inst     = null;
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let optType='call', mdl='bs', hmMode='ror';
+let liveOn=false, liveIv=null, hasRun=false;
+let optimalStrike=null, setupChartInst=null, decay2Inst=null;
+let liveSpot=null, liveIV=null;
 
-// ═══════════════════════════════════════════════
-//  MATH — Black-Scholes & Binomial
-// ═══════════════════════════════════════════════
-function ncdf(x) {
-  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
-  const s = x < 0 ? -1 : 1; x = Math.abs(x) / Math.sqrt(2);
-  const t = 1 / (1 + p * x);
-  const y = 1 - (((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
-  return 0.5 * (1 + s * y);
-}
-function npdf(x) { return Math.exp(-0.5*x*x) / Math.sqrt(2*Math.PI); }
+// ═══════════════════════════════════════
+// LIVE DATA FETCH
+// Uses Yahoo Finance v8 via a public CORS proxy
+// Falls back gracefully if market is closed or fetch fails
+// ═══════════════════════════════════════
+const CORS_PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
 
-function bsP(S, K, T, r, sig, type) {
-  if (T <= 0) return type === 'call' ? Math.max(0, S-K) : Math.max(0, K-S);
-  const d1 = (Math.log(S/K) + (r + 0.5*sig*sig)*T) / (sig*Math.sqrt(T));
-  const d2 = d1 - sig*Math.sqrt(T);
-  return type === 'call'
-    ? S*ncdf(d1) - K*Math.exp(-r*T)*ncdf(d2)
-    : K*Math.exp(-r*T)*ncdf(-d2) - S*ncdf(-d1);
-}
-
-function binP(S, K, T, r, sig, type, N=80) {
-  if (T <= 0) return type === 'call' ? Math.max(0,S-K) : Math.max(0,K-S);
-  const dt=T/N, u=Math.exp(sig*Math.sqrt(dt)), d=1/u;
-  const p = (Math.exp(r*dt)-d)/(u-d), disc = Math.exp(-r*dt);
-  let v = [];
-  for (let i=0; i<=N; i++) {
-    const Sn = S * Math.pow(u, N-i) * Math.pow(d, i);
-    v.push(type==='call' ? Math.max(0,Sn-K) : Math.max(0,K-Sn));
+async function fetchWithProxy(url) {
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const r = await fetch(proxy(url), { signal: AbortSignal.timeout(6000) });
+      if (r.ok) return await r.json();
+    } catch(e) {}
   }
-  for (let s=N-1; s>=0; s--)
-    for (let i=0; i<=s; i++)
-      v[i] = disc*(p*v[i] + (1-p)*v[i+1]);
+  return null;
+}
+
+async function fetchLiveData(ticker) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1m&range=1d`;
+  const data = await fetchWithProxy(url);
+  if (!data) return null;
+  try {
+    const meta = data.chart.result[0].meta;
+    return {
+      price: meta.regularMarketPrice,
+      prevClose: meta.previousClose || meta.chartPreviousClose,
+    };
+  } catch(e) { return null; }
+}
+
+// Fetch IV from options chain via Yahoo v7
+async function fetchIV(ticker) {
+  // Get ATM option IV from nearest expiry
+  const url = `https://query2.finance.yahoo.com/v7/finance/options/${ticker}`;
+  const data = await fetchWithProxy(url);
+  if (!data) return null;
+  try {
+    const chain = data.optionChain.result[0];
+    const spot = chain.quote.regularMarketPrice;
+    const calls = chain.options[0].calls;
+    // Find ATM call (strike closest to spot)
+    const atm = calls.reduce((best, c) =>
+      Math.abs(c.strike - spot) < Math.abs(best.strike - spot) ? c : best, calls[0]);
+    const iv = atm.impliedVolatility;
+    return iv ? +(iv * 100).toFixed(1) : null;
+  } catch(e) { return null; }
+}
+
+function setLiveIndicator(state, text) {
+  const ind = document.getElementById('live-ind');
+  ind.className = 'live-indicator' + (state === 'connected' ? ' connected' : '');
+  document.getElementById('live-ind-text').textContent = text;
+}
+
+function setLastUpdated() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  const fmt = v => v.toString().padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  document.getElementById('last-updated').textContent =
+    `Updated ${h12}:${fmt(m)}:${fmt(s)} ${ampm}`;
+}
+
+async function loadLiveData(ticker) {
+  setLiveIndicator('connecting', 'fetching...');
+  const [priceData, iv] = await Promise.all([
+    fetchLiveData(ticker),
+    fetchIV(ticker)
+  ]);
+
+  if (priceData && priceData.price) {
+    liveSpot = priceData.price;
+    document.getElementById('spot').value = liveSpot.toFixed(2);
+    document.getElementById('spot').classList.add('live-val');
+    // Set a sensible default target: +0.5% for calls, -0.5% for puts
+    const defaultTarget = optType === 'call'
+      ? +(liveSpot * 1.005).toFixed(2)
+      : +(liveSpot * 0.995).toFixed(2);
+    document.getElementById('target').value = defaultTarget;
+    setLiveIndicator('connected', `${ticker} live`);
+    setLastUpdated();
+    document.getElementById('fetch-banner').classList.remove('show');
+  } else {
+    setLiveIndicator('', 'offline');
+    document.getElementById('fetch-banner').classList.add('show');
+  }
+
+  if (iv) {
+    liveIV = iv;
+    document.getElementById('iv').value = iv;
+    document.getElementById('iv').classList.add('live-val');
+  }
+
+  // Always snap current time
+  snapTime();
+}
+
+function snapTime() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const pad = v => v.toString().padStart(2,'0');
+  document.getElementById('curtime').value = `${pad(h)}:${pad(m)}`;
+}
+
+// ═══════════════════════════════════════
+// MATH
+// ═══════════════════════════════════════
+function ncdf(x){
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const s=x<0?-1:1;x=Math.abs(x)/Math.sqrt(2);
+  const t=1/(1+p*x);
+  const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return 0.5*(1+s*y);
+}
+function npdf(x){return Math.exp(-0.5*x*x)/Math.sqrt(2*Math.PI)}
+function bsP(S,K,T,r,sig,type){
+  if(T<=0)return type==='call'?Math.max(0,S-K):Math.max(0,K-S);
+  const d1=(Math.log(S/K)+(r+0.5*sig*sig)*T)/(sig*Math.sqrt(T));
+  const d2=d1-sig*Math.sqrt(T);
+  return type==='call'?S*ncdf(d1)-K*Math.exp(-r*T)*ncdf(d2):K*Math.exp(-r*T)*ncdf(-d2)-S*ncdf(-d1);
+}
+function binP(S,K,T,r,sig,type,N=80){
+  if(T<=0)return type==='call'?Math.max(0,S-K):Math.max(0,K-S);
+  const dt=T/N,u=Math.exp(sig*Math.sqrt(dt)),d=1/u,p=(Math.exp(r*dt)-d)/(u-d),disc=Math.exp(-r*dt);
+  let v=[];
+  for(let i=0;i<=N;i++){const Sn=S*Math.pow(u,N-i)*Math.pow(d,i);v.push(type==='call'?Math.max(0,Sn-K):Math.max(0,K-Sn));}
+  for(let s=N-1;s>=0;s--)for(let i=0;i<=s;i++)v[i]=disc*(p*v[i]+(1-p)*v[i+1]);
   return v[0];
 }
-
-function px(S, K, T, r, sig, type) {
-  return mdl === 'bs' ? bsP(S,K,T,r,sig,type) : binP(S,K,T,r,sig,type);
+function px(S,K,T,r,sig,type){return mdl==='bs'?bsP(S,K,T,r,sig,type):binP(S,K,T,r,sig,type);}
+function greeks(S,K,T,r,sig,type){
+  if(T<=1e-6)return{delta:type==='call'?(S>K?1:0):(S<K?-1:0),gamma:0,theta:0,vega:0,rho:0};
+  const d1=(Math.log(S/K)+(r+0.5*sig*sig)*T)/(sig*Math.sqrt(T));
+  const d2=d1-sig*Math.sqrt(T);
+  const nd1=npdf(d1),gamma=nd1/(S*sig*Math.sqrt(T)),vega=S*nd1*Math.sqrt(T)/100;
+  let delta,theta,rho;
+  if(type==='call'){delta=ncdf(d1);theta=(-S*nd1*sig/(2*Math.sqrt(T))-r*K*Math.exp(-r*T)*ncdf(d2))/365;rho=K*T*Math.exp(-r*T)*ncdf(d2)/100;}
+  else{delta=ncdf(d1)-1;theta=(-S*nd1*sig/(2*Math.sqrt(T))+r*K*Math.exp(-r*T)*ncdf(-d2))/365;rho=-K*T*Math.exp(-r*T)*ncdf(-d2)/100;}
+  return{delta,gamma,theta,vega,rho};
 }
 
-function greeks(S, K, T, r, sig, type) {
-  if (T <= 1e-6) return { delta: type==='call'?(S>K?1:0):(S<K?-1:0), gamma:0, theta:0, vega:0, rho:0 };
-  const d1 = (Math.log(S/K)+(r+0.5*sig*sig)*T)/(sig*Math.sqrt(T));
-  const d2 = d1 - sig*Math.sqrt(T);
-  const nd1 = npdf(d1);
-  const gamma = nd1 / (S*sig*Math.sqrt(T));
-  const vega  = S*nd1*Math.sqrt(T)/100;
-  let delta, theta, rho;
-  if (type === 'call') {
-    delta = ncdf(d1);
-    theta = (-S*nd1*sig/(2*Math.sqrt(T)) - r*K*Math.exp(-r*T)*ncdf(d2)) / 365;
-    rho   = K*T*Math.exp(-r*T)*ncdf(d2)/100;
-  } else {
-    delta = ncdf(d1) - 1;
-    theta = (-S*nd1*sig/(2*Math.sqrt(T)) + r*K*Math.exp(-r*T)*ncdf(-d2)) / 365;
-    rho   = -K*T*Math.exp(-r*T)*ncdf(-d2)/100;
-  }
-  return { delta, gamma, theta, vega, rho };
-}
+// ═══════════════════════════════════════
+// TIME HELPERS
+// ═══════════════════════════════════════
+function toMins(s){const[h,m]=s.split(':').map(Number);return h*60+m;}
+function toFrac(m){return Math.max(0,Math.min(1,(m-600)/360));}
+function toT(m){return Math.max(0,(1-toFrac(m))/365);}
+function minsToStr(m){return`${Math.floor(m/60).toString().padStart(2,'0')}:${(m%60).toString().padStart(2,'0')}`;}
+function fmt12(s){const[h,m]=s.split(':').map(Number);const ampm=h>=12?'PM':'AM';const h12=h%12||12;return`${h12}:${m.toString().padStart(2,'0')} ${ampm}`;}
 
-// ═══════════════════════════════════════════════
-//  TIME HELPERS
-// ═══════════════════════════════════════════════
-function toMins(s) { const [h,m] = s.split(':').map(Number); return h*60+m; }
-function toFrac(m) { return Math.max(0, Math.min(1, (m-600)/360)); }
-function toT(m)    { return Math.max(0, (1-toFrac(m))/365); }
-function minsToStr(m) {
-  return `${Math.floor(m/60).toString().padStart(2,'0')}:${(m%60).toString().padStart(2,'0')}`;
-}
-function fmt12(s) {
-  const [h, m] = s.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const h12  = h % 12 || 12;
-  return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
-}
-
-// ═══════════════════════════════════════════════
-//  PARAMS
-// ═══════════════════════════════════════════════
-function gp() {
-  return {
-    S:       parseFloat(document.getElementById('spot').value)    || 480,
-    iv:      parseFloat(document.getElementById('iv').value)      || 22,
-    rfr:     parseFloat(document.getElementById('rfr').value)     || 5.3,
-    curtime: document.getElementById('curtime').value             || '10:00',
-    target:  parseFloat(document.getElementById('target').value)  || 484,
-    targtime:document.getElementById('targtime').value            || '14:00',
-    hmrange: parseInt(document.getElementById('hmrange').value)   || 5,
+function gp(){
+  return{
+    S:parseFloat(document.getElementById('spot').value)||480,
+    iv:parseFloat(document.getElementById('iv').value)||22,
+    rfr:parseFloat(document.getElementById('rfr').value)||5.3,
+    curtime:document.getElementById('curtime').value||'10:00',
+    target:parseFloat(document.getElementById('target').value)||484,
+    targtime:document.getElementById('targtime').value||'14:00',
+    hmrange:parseInt(document.getElementById('hmrange').value)||5,
   };
 }
 
-// ═══════════════════════════════════════════════
-//  MAIN CALCULATE
-// ═══════════════════════════════════════════════
-function runCalc() {
-  hasRun = true;
-  document.getElementById('setup-placeholder').style.display = 'none';
-  document.getElementById('setup-results').style.display     = 'flex';
-  ['hm-unrun','dec-unrun','grk-unrun'].forEach(id => document.getElementById(id).style.display = 'none');
-  ['hm-content','dec-content','grk-content'].forEach(id => { document.getElementById(id).style.display = 'flex'; });
+// ═══════════════════════════════════════
+// CALCULATE
+// ═══════════════════════════════════════
+function runCalc(){
+  hasRun=true;
+  document.getElementById('setup-placeholder').style.display='none';
+  document.getElementById('setup-results').style.display='flex';
+  ['hm-unrun','dec-unrun','grk-unrun'].forEach(id=>document.getElementById(id).style.display='none');
+  ['hm-content','dec-content','grk-content'].forEach(id=>{document.getElementById(id).style.display='flex';});
   doCalc();
 }
 
-function doCalc() {
-  if (!hasRun) return;
-  const { S, iv, rfr, curtime, target, targtime, hmrange } = gp();
-  const sig = iv/100, r = rfr/100;
-  const curMins = toMins(curtime);
-  const tgtMins = Math.min(toMins(targtime), 960); // cap at 4PM
-
-  // Exit time columns: every 30 min from curtime+30 → targtime
-  const exitMins = [];
-  for (let m = curMins+30; m < tgtMins; m += 30) exitMins.push(m);
+function doCalc(){
+  if(!hasRun)return;
+  const{S,iv,rfr,curtime,target,targtime,hmrange}=gp();
+  const sig=iv/100,r=rfr/100;
+  const curMins=toMins(curtime),tgtMins=Math.min(toMins(targtime),960);
+  const exitMins=[];
+  for(let m=curMins+30;m<tgtMins;m+=30)exitMins.push(m);
   exitMins.push(tgtMins);
-
-  if (exitMins.length === 0) {
-    document.getElementById('status0').textContent = 'Target time must be after current time.';
-    return;
-  }
-
-  const refK   = Math.round(S);
-  const strikes = [];
-  for (let i = -hmrange; i <= hmrange; i++) strikes.push(refK + i);
-
-  // Score each strike by average % return across all exit columns
-  // Entry: price at spot now. Exit: price at target at each time.
-  const rowData = strikes.map(sk => {
-    const entryVal = px(S, sk, toT(curMins), r, sig, optType);
-    const cells = exitMins.map(em => {
-      const exitVal = px(target, sk, toT(em), r, sig, optType);
-      const ror = entryVal > 0.01 ? ((exitVal - entryVal) / entryVal * 100) : 0;
-      return { ror, exitVal, entryVal };
+  if(exitMins.length===0){document.getElementById('status0').textContent='Target time must be after current time.';return;}
+  const refK=Math.round(S),strikes=[];
+  for(let i=-hmrange;i<=hmrange;i++)strikes.push(refK+i);
+  const rowData=strikes.map(sk=>{
+    const entryVal=px(S,sk,toT(curMins),r,sig,optType);
+    const cells=exitMins.map(em=>{
+      const exitVal=px(target,sk,toT(em),r,sig,optType);
+      const ror=entryVal>0.01?((exitVal-entryVal)/entryVal*100):0;
+      return{ror,exitVal,entryVal};
     });
-    const avgRor = cells.reduce((a, c) => a + c.ror, 0) / cells.length;
-    return { sk, entryVal, cells, avgRor };
+    const avgRor=cells.reduce((a,c)=>a+c.ror,0)/cells.length;
+    return{sk,entryVal,cells,avgRor};
   });
-
-  // Optimal = highest average return
-  let bestIdx = 0, bestAvg = -Infinity;
-  rowData.forEach((rd, i) => { if (rd.avgRor > bestAvg) { bestAvg = rd.avgRor; bestIdx = i; } });
-  optimalStrike = rowData[bestIdx].sk;
-  const optEntry = rowData[bestIdx].entryVal;
-
-  // Window display
-  const winMins = Math.max(0, tgtMins - curMins);
-  const winH = Math.floor(winMins/60), winM = winMins%60;
-
-  // ── Setup metrics
-  document.getElementById('m-optsk').textContent = optimalStrike;
-  document.getElementById('m-price').textContent = '$' + optEntry.toFixed(2);
-  const avgEl = document.getElementById('m-avgret');
-  avgEl.textContent = (bestAvg >= 0 ? '+' : '') + bestAvg.toFixed(1) + '%';
-  avgEl.className = 'metric-val ' + (bestAvg >= 0 ? 'c-green' : 'c-red');
-  document.getElementById('m-win').textContent = winH > 0 ? `${winH}h ${winM}m` : `${winM}m`;
-  document.getElementById('opt-tag').textContent = `Optimal K: ${optimalStrike}`;
-  const b0 = document.getElementById('chart0-badge');
-  b0.textContent = optType.toUpperCase();
-  b0.className = 'badge ' + (optType==='call' ? 'badge-call' : 'badge-put');
-  document.getElementById('status0').textContent =
-    `Optimal strike ${optimalStrike} — avg return ${(bestAvg>=0?'+':'')+bestAvg.toFixed(1)}% across ${exitMins.length} intervals from ${fmt12(curtime)} to ${fmt12(targtime)}.`;
-
-  buildSetupChart(S, target, optimalStrike, sig, r, curMins, tgtMins);
-  buildHeatmap(rowData, exitMins, bestIdx, refK);
-  buildDecay(S, target, optimalStrike, sig, r, curMins, tgtMins, optEntry);
-  buildGreeksPanel(S, refK, optimalStrike, sig, r, curMins, bestAvg);
+  let bestIdx=0,bestAvg=-Infinity;
+  rowData.forEach((rd,i)=>{if(rd.avgRor>bestAvg){bestAvg=rd.avgRor;bestIdx=i;}});
+  optimalStrike=rowData[bestIdx].sk;
+  const optEntry=rowData[bestIdx].entryVal;
+  const winMins=Math.max(0,tgtMins-curMins),winH=Math.floor(winMins/60),winM=winMins%60;
+  document.getElementById('m-optsk').textContent=optimalStrike;
+  document.getElementById('m-price').textContent='$'+optEntry.toFixed(2);
+  const avgEl=document.getElementById('m-avgret');
+  avgEl.textContent=(bestAvg>=0?'+':'')+bestAvg.toFixed(1)+'%';
+  avgEl.className='metric-val '+(bestAvg>=0?'c-green':'c-red');
+  document.getElementById('m-win').textContent=winH>0?`${winH}h ${winM}m`:`${winM}m`;
+  document.getElementById('opt-tag').textContent=`Optimal K: ${optimalStrike}`;
+  const b0=document.getElementById('chart0-badge');
+  b0.textContent=optType.toUpperCase();b0.className='badge '+(optType==='call'?'badge-call':'badge-put');
+  document.getElementById('status0').textContent=`Optimal strike ${optimalStrike} — avg return ${(bestAvg>=0?'+':'')+bestAvg.toFixed(1)}% across ${exitMins.length} intervals · ${fmt12(curtime)} → ${fmt12(targtime)}`;
+  buildSetupChart(S,target,optimalStrike,sig,r,curMins,tgtMins);
+  buildHeatmap(rowData,exitMins,bestIdx,refK);
+  buildDecay(S,target,optimalStrike,sig,r,curMins,tgtMins,optEntry);
+  buildGreeksPanel(S,refK,optimalStrike,sig,r,curMins,bestAvg);
 }
 
-// ═══════════════════════════════════════════════
-//  SETUP CHART
-// ═══════════════════════════════════════════════
-function buildSetupChart(S, target, sk, sig, r, curMins, tgtMins) {
-  const steps = [];
-  for (let m = curMins; m <= tgtMins; m += 15) steps.push(m);
-  if (steps[steps.length-1] < tgtMins) steps.push(tgtMins);
-
-  const labels = steps.map(m => fmt12(minsToStr(m)));
-  const vSpot  = steps.map(m => +px(S,      sk, toT(m), r, sig, optType).toFixed(2));
-  const vTgt   = steps.map(m => +px(target, sk, toT(m), r, sig, optType).toFixed(2));
-  const vIntr  = steps.map(() => +(optType==='call' ? Math.max(0,S-sk) : Math.max(0,sk-S)).toFixed(2));
-
-  document.getElementById('chart0-title').textContent =
-    `K=${sk} — S₀=$${S} vs S₁=$${target} over move window`;
-
-  const ctx = document.getElementById('setupChart').getContext('2d');
-  if (setupChartInst) setupChartInst.destroy();
-  setupChartInst = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [
-      { label:'At S₀',    data:vSpot, borderColor:'#378ADD', borderWidth:2, fill:false, tension:0.3, pointRadius:0, pointHoverRadius:4 },
-      { label:'At S₁',    data:vTgt,  borderColor:'#1D9E75', borderWidth:2, fill:false, tension:0.3, pointRadius:0, pointHoverRadius:4, borderDash:[6,3] },
-      { label:'Intrinsic', data:vIntr, borderColor:'#e05a5a', borderWidth:1, fill:false, tension:0,   pointRadius:0, borderDash:[2,4]  },
-    ]},
-    options: chartOpts(),
-  });
+function buildSetupChart(S,target,sk,sig,r,curMins,tgtMins){
+  const steps=[];
+  for(let m=curMins;m<=tgtMins;m+=15)steps.push(m);
+  if(steps[steps.length-1]<tgtMins)steps.push(tgtMins);
+  const labels=steps.map(m=>fmt12(minsToStr(m)));
+  const vSpot=steps.map(m=>+px(S,sk,toT(m),r,sig,optType).toFixed(2));
+  const vTgt=steps.map(m=>+px(target,sk,toT(m),r,sig,optType).toFixed(2));
+  const vIntr=steps.map(()=>+(optType==='call'?Math.max(0,S-sk):Math.max(0,sk-S)).toFixed(2));
+  document.getElementById('chart0-title').textContent=`K=${sk} — S₀=$${S} vs S₁=$${target}`;
+  const ctx=document.getElementById('setupChart').getContext('2d');
+  if(setupChartInst)setupChartInst.destroy();
+  setupChartInst=new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'At S₀',data:vSpot,borderColor:'#378ADD',borderWidth:2,fill:false,tension:0.3,pointRadius:0,pointHoverRadius:4},
+    {label:'At S₁',data:vTgt,borderColor:'#1D9E75',borderWidth:2,fill:false,tension:0.3,pointRadius:0,pointHoverRadius:4,borderDash:[6,3]},
+    {label:'Intrinsic',data:vIntr,borderColor:'#e05a5a',borderWidth:1,fill:false,tension:0,pointRadius:0,borderDash:[2,4]},
+  ]},options:cOpts()});
 }
 
-// ═══════════════════════════════════════════════
-//  HEATMAP
-// ═══════════════════════════════════════════════
-function buildHeatmap(rowData, exitMins, bestIdx, refK) {
-  let html = '<table class="hm"><thead><tr><th>Strike</th><th>Entry $</th><th>Avg Ret ▲</th>';
-  exitMins.forEach(em => { html += `<th>${fmt12(minsToStr(em))}</th>`; });
-  html += '</tr></thead><tbody>';
-
-  rowData.forEach((rd, ri) => {
-    const isOpt = ri === bestIdx;
-    const isRef = rd.sk === refK;
-    const skLabel = isOpt
-      ? `<span style="color:var(--amber);font-weight:700">⬟ ${rd.sk}</span>`
-      : (isRef ? `${rd.sk} ★` : rd.sk);
-    const rowBg = isOpt ? 'background:rgba(239,159,39,0.06)' : '';
-    html += `<tr>`;
-    html += `<td style="font-weight:500;${rowBg}">${skLabel}</td>`;
-    html += `<td style="background:var(--bg3);color:var(--text)">$${rd.entryVal.toFixed(2)}</td>`;
-
-    const avgBg = heatCol(rd.avgRor);
-    const avgTc = Math.abs(rd.avgRor) > 10 ? '#fff' : 'var(--text)';
-    const avgOpt = isOpt ? 'outline:2px solid var(--amber);outline-offset:-2px;' : '';
-    html += `<td style="background:${avgBg};color:${avgTc};font-weight:700;${avgOpt}">${(rd.avgRor>=0?'+':'')+rd.avgRor.toFixed(0)}%</td>`;
-
-    rd.cells.forEach(c => {
-      const bg      = heatCol(c.ror);
-      const tc      = Math.abs(c.ror) > 10 ? '#fff' : 'var(--text)';
-      const optBdr  = isOpt ? 'outline:2px solid var(--amber);outline-offset:-2px;' : '';
-      const display = hmMode === 'ror'
-        ? ((c.ror >= 0 ? '+' : '') + c.ror.toFixed(0) + '%')
-        : ('$' + c.exitVal.toFixed(2));
-      html += `<td style="background:${bg};color:${tc};${optBdr}">${display}</td>`;
+function buildHeatmap(rowData,exitMins,bestIdx,refK){
+  let html='<table class="hm"><thead><tr><th>Strike</th><th>Entry $</th><th>Avg Ret ▲</th>';
+  exitMins.forEach(em=>{html+=`<th>${fmt12(minsToStr(em))}</th>`;});
+  html+='</tr></thead><tbody>';
+  rowData.forEach((rd,ri)=>{
+    const isOpt=ri===bestIdx,isRef=rd.sk===refK;
+    const skLabel=isOpt?`<span style="color:var(--amber);font-weight:700">⬟ ${rd.sk}</span>`:(isRef?`${rd.sk} ★`:rd.sk);
+    const rowBg=isOpt?'background:rgba(239,159,39,0.06)':'';
+    html+=`<tr><td style="font-weight:500;${rowBg}">${skLabel}</td>`;
+    html+=`<td style="background:var(--bg3);color:var(--text)">$${rd.entryVal.toFixed(2)}</td>`;
+    const avgBg=heatCol(rd.avgRor),avgTc=Math.abs(rd.avgRor)>10?'#fff':'var(--text)';
+    const avgOpt=isOpt?'outline:2px solid var(--amber);outline-offset:-2px;':'';
+    html+=`<td style="background:${avgBg};color:${avgTc};font-weight:700;${avgOpt}">${(rd.avgRor>=0?'+':'')+rd.avgRor.toFixed(0)}%</td>`;
+    rd.cells.forEach(c=>{
+      const bg=heatCol(c.ror),tc=Math.abs(c.ror)>10?'#fff':'var(--text)';
+      const optBdr=isOpt?'outline:2px solid var(--amber);outline-offset:-2px;':'';
+      const display=hmMode==='ror'?((c.ror>=0?'+':'')+c.ror.toFixed(0)+'%'):('$'+c.exitVal.toFixed(2));
+      html+=`<td style="background:${bg};color:${tc};${optBdr}">${display}</td>`;
     });
-    html += '</tr>';
+    html+='</tr>';
   });
-  html += '</tbody></table>';
-  document.getElementById('hm-container').innerHTML = html;
-  document.getElementById('hm-status').textContent =
-    `Optimal: K=${optimalStrike} | Avg return: ${(rowData[bestIdx].avgRor>=0?'+':'')+rowData[bestIdx].avgRor.toFixed(1)}% across all columns`;
+  html+='</tbody></table>';
+  document.getElementById('hm-container').innerHTML=html;
+  document.getElementById('hm-status').textContent=`Optimal: K=${optimalStrike} | Avg return: ${(rowData[bestIdx].avgRor>=0?'+':'')+rowData[bestIdx].avgRor.toFixed(1)}% across all columns`;
 }
 
-function heatCol(ror) {
-  if (ror > 100)  return '#0F6E56';
-  if (ror > 50)   return '#1D9E75';
-  if (ror > 20)   return '#639922';
-  if (ror > 5)    return '#3a5a2a';
-  if (ror >= -5)  return 'var(--bg3)';
-  if (ror >= -20) return '#5a2a1a';
-  if (ror >= -50) return '#7a2a1a';
-  return '#A32D2D';
+function heatCol(ror){
+  if(ror>100)return'#0F6E56';if(ror>50)return'#1D9E75';if(ror>20)return'#639922';
+  if(ror>5)return'#3a5a2a';if(ror>=-5)return'var(--bg3)';if(ror>=-20)return'#5a2a1a';
+  if(ror>=-50)return'#7a2a1a';return'#A32D2D';
 }
 
-// ═══════════════════════════════════════════════
-//  DECAY + LIMIT SELLS
-// ═══════════════════════════════════════════════
-function buildDecay(S, target, sk, sig, r, curMins, tgtMins, optEntry) {
-  document.getElementById('sel-strike-label').textContent = `K = ${sk} (${optType.toUpperCase()}) — optimal strike`;
-  document.getElementById('chart2-title').textContent     = `Decay — K=${sk} | S₀=$${S} → S₁=$${target}`;
-  const b2 = document.getElementById('chart2-badge');
-  b2.textContent = optType.toUpperCase();
-  b2.className   = 'badge ' + (optType==='call' ? 'badge-call' : 'badge-put');
-
-  // Scenario times: equal thirds of window
-  const third = (tgtMins - curMins) / 3;
-  const scenTimes  = [curMins + third, curMins + 2*third, tgtMins];
-  const scenLabels = ['Fast move (⅓ window)', 'Mid move (⅔ window)', 'Full window'];
-
-  const scenFair  = scenTimes.map(m => px(target, sk, toT(m), r, sig, optType));
-  const limitVals = scenFair.map(v => v * 0.95);
-
-  // Build limit sell rows
-  let lhtml = '';
-  scenTimes.forEach((m, i) => {
-    const timeStr = fmt12(minsToStr(Math.round(m)));
-    const fv = scenFair[i];
-    const lv = limitVals[i];
-    const ret = optEntry > 0.01 ? ((fv - optEntry) / optEntry * 100) : 0;
-    lhtml += `
-      <div class="limit-grid">
-        <div class="limit-cell">
-          <div class="limit-scenario">${scenLabels[i]}</div>
-          <div style="font-size:12px;font-weight:500;color:var(--text)">${timeStr}</div>
-        </div>
-        <div class="limit-cell">
-          <div class="limit-val-green">$${fv.toFixed(2)}</div>
-          <div class="limit-sub">${(ret>=0?'+':'')+ret.toFixed(1)}% return if filled</div>
-        </div>
-        <div class="limit-cell">
-          <div class="limit-val-blue">$${lv.toFixed(2)}</div>
-          <div class="limit-sub">95% of fair — recommended limit</div>
-        </div>
-      </div>`;
+function buildDecay(S,target,sk,sig,r,curMins,tgtMins,optEntry){
+  document.getElementById('sel-strike-label').textContent=`K = ${sk} (${optType.toUpperCase()}) — optimal strike`;
+  document.getElementById('chart2-title').textContent=`Decay — K=${sk} | S₀=$${S} → S₁=$${target}`;
+  const b2=document.getElementById('chart2-badge');
+  b2.textContent=optType.toUpperCase();b2.className='badge '+(optType==='call'?'badge-call':'badge-put');
+  const third=(tgtMins-curMins)/3;
+  const scenTimes=[curMins+third,curMins+2*third,tgtMins];
+  const scenLabels=['Fast move (⅓ window)','Mid move (⅔ window)','Full window'];
+  const scenFair=scenTimes.map(m=>px(target,sk,toT(m),r,sig,optType));
+  const limitVals=scenFair.map(v=>v*0.95);
+  let lhtml='';
+  scenTimes.forEach((m,i)=>{
+    const timeStr=fmt12(minsToStr(Math.round(m)));
+    const fv=scenFair[i],lv=limitVals[i];
+    const ret=optEntry>0.01?((fv-optEntry)/optEntry*100):0;
+    lhtml+=`<div class="limit-grid">
+      <div class="limit-cell"><div class="limit-scenario">${scenLabels[i]}</div><div style="font-size:12px;font-weight:500;color:var(--text)">${timeStr}</div></div>
+      <div class="limit-cell"><div style="font-size:15px;font-weight:500;color:#29c58a">$${fv.toFixed(2)}</div><div class="limit-sub">${(ret>=0?'+':'')+ret.toFixed(1)}% return if filled</div></div>
+      <div class="limit-cell"><div style="font-size:15px;font-weight:500;color:#5faee8">$${lv.toFixed(2)}</div><div class="limit-sub">95% of fair — recommended limit</div></div>
+    </div>`;
   });
-  document.getElementById('limit-rows').innerHTML = lhtml;
-
-  // Build decay chart with limit sell lines as datasets
-  const steps = [];
-  for (let m = curMins; m <= tgtMins; m += 15) steps.push(m);
-  if (steps[steps.length-1] < tgtMins) steps.push(tgtMins);
-
-  const labels = steps.map(m => fmt12(minsToStr(m)));
-  const vSpot  = steps.map(m => +px(S,      sk, toT(m), r, sig, optType).toFixed(2));
-  const vTgt   = steps.map(m => +px(target, sk, toT(m), r, sig, optType).toFixed(2));
-
-  const limitDatasets = limitVals.map((lv, i) => ({
-    label: `Limit ${i+1}: $${lv.toFixed(2)}`,
-    data:  steps.map(() => +lv.toFixed(2)),
-    borderColor: '#EF9F27',
-    borderWidth: 1.2,
-    borderDash: [4, 4],
-    fill: false, pointRadius: 0, tension: 0,
+  document.getElementById('limit-rows').innerHTML=lhtml;
+  const steps=[];
+  for(let m=curMins;m<=tgtMins;m+=15)steps.push(m);
+  if(steps[steps.length-1]<tgtMins)steps.push(tgtMins);
+  const labels=steps.map(m=>fmt12(minsToStr(m)));
+  const vSpot=steps.map(m=>+px(S,sk,toT(m),r,sig,optType).toFixed(2));
+  const vTgt=steps.map(m=>+px(target,sk,toT(m),r,sig,optType).toFixed(2));
+  const limitDatasets=limitVals.map((lv,i)=>({
+    label:`Limit ${i+1}: $${lv.toFixed(2)}`,data:steps.map(()=>+lv.toFixed(2)),
+    borderColor:'#EF9F27',borderWidth:1.2,borderDash:[4,4],fill:false,pointRadius:0,tension:0,
   }));
-
-  const ctx = document.getElementById('decayChart2').getContext('2d');
-  if (decay2Inst) decay2Inst.destroy();
-  decay2Inst = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [
-      { label:'At S₀', data:vSpot, borderColor:'#378ADD', borderWidth:2, fill:false, tension:0.3, pointRadius:0, pointHoverRadius:4 },
-      { label:'At S₁', data:vTgt,  borderColor:'#1D9E75', borderWidth:2, fill:false, tension:0.3, pointRadius:0, pointHoverRadius:4, borderDash:[6,3] },
-      ...limitDatasets,
-    ]},
-    options: chartOpts(),
-  });
+  const ctx=document.getElementById('decayChart2').getContext('2d');
+  if(decay2Inst)decay2Inst.destroy();
+  decay2Inst=new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'At S₀',data:vSpot,borderColor:'#378ADD',borderWidth:2,fill:false,tension:0.3,pointRadius:0,pointHoverRadius:4},
+    {label:'At S₁',data:vTgt,borderColor:'#1D9E75',borderWidth:2,fill:false,tension:0.3,pointRadius:0,pointHoverRadius:4,borderDash:[6,3]},
+    ...limitDatasets,
+  ]},options:cOpts()});
 }
 
-// ═══════════════════════════════════════════════
-//  GREEKS PANEL
-// ═══════════════════════════════════════════════
-function buildGreeksPanel(S, refK, optSk, sig, r, curMins, bestAvg) {
-  const T = toT(curMins);
-  const fillGreeks = (prefix, K) => {
-    const g = greeks(S, K, T, r, sig, optType);
-    const p = px(S, K, T, r, sig, optType);
-    document.getElementById(`${prefix}price`).textContent = '$' + p.toFixed(2);
-    document.getElementById(`${prefix}delta`).textContent = g.delta.toFixed(4);
-    document.getElementById(`${prefix}gamma`).textContent = g.gamma.toFixed(4);
-    document.getElementById(`${prefix}theta`).textContent = '$' + g.theta.toFixed(4);
-    document.getElementById(`${prefix}vega`).textContent  = '$' + g.vega.toFixed(4);
-    document.getElementById(`${prefix}rho`).textContent   = '$' + g.rho.toFixed(4);
+function buildGreeksPanel(S,refK,optSk,sig,r,curMins,bestAvg){
+  const T=toT(curMins);
+  const fill=(pre,K)=>{
+    const g=greeks(S,K,T,r,sig,optType),p=px(S,K,T,r,sig,optType);
+    document.getElementById(`${pre}price`).textContent='$'+p.toFixed(2);
+    document.getElementById(`${pre}delta`).textContent=g.delta.toFixed(4);
+    document.getElementById(`${pre}gamma`).textContent=g.gamma.toFixed(4);
+    document.getElementById(`${pre}theta`).textContent='$'+g.theta.toFixed(4);
+    document.getElementById(`${pre}vega`).textContent='$'+g.vega.toFixed(4);
+    document.getElementById(`${pre}rho`).textContent='$'+g.rho.toFixed(4);
   };
-  fillGreeks('g-', refK);
-  fillGreeks('og-', optSk);
-
-  const closeMins = 960, mLeft = Math.max(0, closeMins - curMins);
-  document.getElementById('g-tte').textContent  = `${Math.floor(mLeft/60)}h ${mLeft%60}m`;
-  const mono = S > refK ? 'ITM' : (S < refK ? 'OTM' : 'ATM');
-  document.getElementById('g-mono').textContent = `${mono} (${((S-refK)/refK*100).toFixed(2)}%)`;
-  document.getElementById('og-avgret').textContent = (bestAvg>=0?'+':'')+bestAvg.toFixed(1)+'%';
-  document.getElementById('og-sk').textContent     = optSk;
+  fill('g-',refK);fill('og-',optSk);
+  const mLeft=Math.max(0,960-curMins);
+  document.getElementById('g-tte').textContent=`${Math.floor(mLeft/60)}h ${mLeft%60}m`;
+  const mono=S>refK?'ITM':(S<refK?'OTM':'ATM');
+  document.getElementById('g-mono').textContent=`${mono} (${((S-refK)/refK*100).toFixed(2)}%)`;
+  document.getElementById('og-avgret').textContent=(bestAvg>=0?'+':'')+bestAvg.toFixed(1)+'%';
+  document.getElementById('og-sk').textContent=optSk;
 }
 
-// ═══════════════════════════════════════════════
-//  CHART OPTIONS (shared dark theme)
-// ═══════════════════════════════════════════════
-function chartOpts() {
-  return {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        mode: 'index', intersect: false,
-        backgroundColor: '#1a1a1a',
-        borderColor: '#2e2e2e',
-        borderWidth: 1,
-        titleColor: '#999',
-        bodyColor: '#e8e8e8',
-        callbacks: { label: c => `${c.dataset.label}: $${c.parsed.y.toFixed(2)}` },
-      },
-    },
-    scales: {
-      x: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: '#666', font: { size: 10 }, maxTicksLimit: 8, autoSkip: true },
-      },
-      y: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: '#666', font: { size: 10 }, callback: v => '$' + v.toFixed(2) },
-      },
-    },
-  };
+function cOpts(){
+  return{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,
+      backgroundColor:'#1a1a1a',borderColor:'#2e2e2e',borderWidth:1,
+      titleColor:'#999',bodyColor:'#e8e8e8',
+      callbacks:{label:c=>`${c.dataset.label}: $${c.parsed.y.toFixed(2)}`}}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555',font:{size:10},maxTicksLimit:8,autoSkip:true}},
+      y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#555',font:{size:10},callback:v=>'$'+v.toFixed(2)}},
+    }};
 }
 
-// ═══════════════════════════════════════════════
-//  UI CONTROLS
-// ═══════════════════════════════════════════════
-function sw(n) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
-  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
+// ═══════════════════════════════════════
+// UI CONTROLS
+// ═══════════════════════════════════════
+function sw(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+}
+function setType(t){
+  optType=t;
+  document.getElementById('btn-call').classList.toggle('active',t==='call');
+  document.getElementById('btn-call').classList.toggle('call',t==='call');
+  document.getElementById('btn-put').classList.toggle('active',t==='put');
+  document.getElementById('btn-put').classList.toggle('put',t==='put');
+  // Update default target direction
+  const S=parseFloat(document.getElementById('spot').value);
+  if(S){document.getElementById('target').value=t==='call'?+(S*1.005).toFixed(2):+(S*0.995).toFixed(2);}
+}
+function setMdl(m){
+  mdl=m;
+  document.getElementById('m-bs').classList.toggle('active',m==='bs');
+  document.getElementById('m-bin').classList.toggle('active',m==='bin');
+}
+function setHmMode(m){
+  hmMode=m;
+  document.getElementById('hm-ror').classList.toggle('active',m==='ror');
+  document.getElementById('hm-val').classList.toggle('active',m==='val');
+  if(hasRun)doCalc();
 }
 
-function setType(t) {
-  optType = t;
-  document.getElementById('btn-call').classList.toggle('active', t==='call');
-  document.getElementById('btn-call').classList.toggle('call',   t==='call');
-  document.getElementById('btn-put').classList.toggle('active',  t==='put');
-  document.getElementById('btn-put').classList.toggle('put',     t==='put');
-}
-
-function setMdl(m) {
-  mdl = m;
-  document.getElementById('m-bs').classList.toggle('active',  m==='bs');
-  document.getElementById('m-bin').classList.toggle('active', m==='bin');
-}
-
-function setHmMode(m) {
-  hmMode = m;
-  document.getElementById('hm-ror').classList.toggle('active', m==='ror');
-  document.getElementById('hm-val').classList.toggle('active', m==='val');
-  if (hasRun) doCalc();
-}
-
-function togLive() {
-  liveOn = !liveOn;
-  const btn = document.getElementById('livebtn');
-  const lbl = document.getElementById('livelbl');
-  if (liveOn) {
-    btn.classList.add('on'); lbl.textContent = 'LIVE — ON';
-    snapLive();
-    liveIv = setInterval(snapLive, 15000);
+async function togLive(){
+  liveOn=!liveOn;
+  const btn=document.getElementById('livebtn'),lbl=document.getElementById('livelbl');
+  if(liveOn){
+    btn.classList.add('on');lbl.textContent='LIVE — ON';
+    await refreshLive();
+    liveIv=setInterval(refreshLive,30000);
   } else {
-    btn.classList.remove('on'); lbl.textContent = 'LIVE';
+    btn.classList.remove('on');lbl.textContent='LIVE';
     clearInterval(liveIv);
+    setLiveIndicator('','paused');
   }
 }
 
-function snapLive() {
-  const now = new Date(), h = now.getHours(), m = now.getMinutes();
-  const pad = v => v.toString().padStart(2,'0');
-  document.getElementById('curtime').value = `${pad(h)}:${pad(m)}`;
-  if (hasRun) doCalc();
+async function refreshLive(){
+  const ticker=document.getElementById('ticker').value;
+  await loadLiveData(ticker);
+  snapTime();
+  if(hasRun)doCalc();
 }
 
-function onTick() {
-  const d = {
-    QQQ:  { spot:480, target:484 },
-    SPY:  { spot:535, target:539 },
-    IWM:  { spot:210, target:213 },
-    SQQQ: { spot:12,  target:11  },
-    TQQQ: { spot:65,  target:68  },
-  };
-  const v = d[document.getElementById('ticker').value] || d.QQQ;
-  document.getElementById('spot').value   = v.spot;
-  document.getElementById('target').value = v.target;
+async function onTick(){
+  const ticker=document.getElementById('ticker').value;
+  await loadLiveData(ticker);
 }
 
-// ── Always On Top (via Electron IPC)
-async function toggleAOT() {
-  if (window.electronAPI) {
-    const state = await window.electronAPI.toggleAlwaysOnTop();
-    document.getElementById('aot-btn').classList.toggle('active', state);
-    document.getElementById('aot-btn').textContent = state ? '✓ Always on Top' : 'Always on Top';
-  }
-}
+// ═══════════════════════════════════════
+// INIT — fetch live data on load
+// ═══════════════════════════════════════
+window.addEventListener('load', async ()=>{
+  snapTime();
+  await loadLiveData('QQQ');
+});
 </script>
 </body>
 </html>
